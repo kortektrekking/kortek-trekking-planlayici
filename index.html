@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trekking Planlayıcı</title>
+
+<style>
+:root{
+--bg:#121212;
+--card:#1e1e1e;
+--primary:#4caf50;
+--text:#fff;
+--border:#333;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Segoe UI,sans-serif;
+background:var(--bg);
+color:var(--text);
+padding:15px;
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.container{
+width:100%;
+max-width:600px;
+background:var(--card);
+padding:20px;
+border-radius:16px;
+border:1px solid var(--border);
+}
+
+.logo{
+    display:flex;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+.logo-img{
+    width:min(280px,80vw);
+    height:auto;
+    display:block;
+}
+
+.logo{
+display:flex;
+justify-content:center;
+margin-bottom:15px;
+}
+
+.logo svg{
+width:90px;
+height:90px;
+}
+
+h1{
+text-align:center;
+font-size:1.4rem;
+margin-bottom:20px;
+color:#81c784;
+}
+
+.group{
+margin-bottom:15px;
+}
+
+label{
+display:block;
+margin-bottom:8px;
+}
+
+input,select{
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid var(--border);
+background:#2b2b2b;
+color:white;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+margin-top:10px;
+}
+
+.calc{
+background:#4caf50;
+color:white;
+}
+
+.map{
+background:#1976d2;
+color:white;
+}
+
+.fav{
+background:#ff9800;
+color:white;
+}
+
+.result{
+display:none;
+margin-top:20px;
+padding:15px;
+background:#243424;
+border-left:5px solid #81c784;
+border-radius:8px;
+line-height:1.7;
+}
+
+@media(max-width:768px){
+.grid{
+grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="logo">
+    <img
+        src="kortektreklogo.png"
+        alt="KORTEK Trekking"
+        class="logo-img">
+</div>
+<h1>Trekking Planlayıcı</h1>
+
+<div class="group">
+<label>Rota</label>
+<select id="rota">
+
+<optgroup label="Prens Adaları">
+<option value="buyukada">Büyükada - Dilburnu</option>
+<option value="heybeliada">Heybeliada - Değirmenburnu</option>
+<option value="burgazada">Burgazada - Bayraktepe</option>
+<option value="kinaliada">Kınalıada - Manastır Tepesi</option>
+</optgroup>
+
+<optgroup label="İstanbul Ormanları">
+<option value="belgrad">Belgrad Ormanı</option>
+<option value="polonezkoy">Polonezköy</option>
+<option value="aydos">Aydos Ormanı</option>
+<option value="sile">Şile Hacıllı</option>
+</optgroup>
+
+<optgroup label="Marmara Bölgesi">
+<option value="uludag">Uludağ Çobankaya</option>
+<option value="menekse">Menekşe Yaylası</option>
+<option value="ballikayalar">Ballıkayalar</option>
+<option value="kartepe">Kartepe Kuzuyayla</option>
+</optgroup>
+
+<optgroup label="Popüler Trekking">
+<option value="kazdaglari">Kazdağları</option>
+<option value="yenice">Yenice Ormanları</option>
+<option value="igneada">İğneada Longozu</option>
+</optgroup>
+
+</select>
+<div class="grid">
+
+<div class="group">
+<label>Mesafe (km)</label>
+<input type="number"
+id="mesafe"
+value="5"
+step="0.1">
+</div>
+
+<div class="group">
+<label>Kilo (kg)</label>
+<input type="number"
+id="kilo"
+value="70">
+</div>
+
+<div class="group">
+<label>Başlangıç</label>
+<input type="time"
+id="baslangic"
+value="08:00">
+</div>
+
+</div>
+
+<button class="calc"
+onclick="hesapla()">
+Hesapla
+</button>
+
+<button class="fav"
+onclick="favoriKaydet()">
+⭐ Favori Yap
+</button>
+
+<button class="map"
+onclick="haritaAc()">
+🗺 Haritada Aç
+</button>
+
+<div id="sonuc"
+class="result"></div>
+
+</div>
+
+<script>
+
+const rotalar = {
+
+buyukada:{
+ad:"Büyükada - Dilburnu",
+hiz:4.0,
+met:4.3,
+link:"https://maps.google.com/?q=Büyükada",
+ekipman:["Şapka","Su","Powerbank"]
+},
+
+heybeliada:{
+ad:"Heybeliada - Değirmenburnu",
+hiz:4.2,
+met:3.8,
+link:"https://maps.google.com/?q=Heybeliada",
+ekipman:["Su","Şapka"]
+},
+
+burgazada:{
+ad:"Burgazada - Bayraktepe",
+hiz:3.8,
+met:4.5,
+link:"https://maps.google.com/?q=Burgazada",
+ekipman:["Su","Şapka","Powerbank"]
+},
+
+kinaliada:{
+ad:"Kınalıada - Manastır Tepesi",
+hiz:4.3,
+met:3.5,
+link:"https://maps.google.com/?q=Kınalıada",
+ekipman:["Su","Şapka"]
+},
+
+belgrad:{
+ad:"Belgrad Ormanı",
+hiz:4.5,
+met:3.5,
+link:"https://maps.google.com/?q=Belgrad+Ormanı",
+ekipman:["Su","Atıştırmalık"]
+},
+
+polonezkoy:{
+ad:"Polonezköy",
+hiz:4.0,
+met:4.0,
+link:"https://maps.google.com/?q=Polonezköy",
+ekipman:["Yağmurluk","Su"]
+},
+
+aydos:{
+ad:"Aydos Ormanı",
+hiz:3.8,
+met:4.5,
+link:"https://maps.google.com/?q=Aydos",
+ekipman:["Su","Powerbank","İlk Yardım"]
+},
+
+sile:{
+ad:"Şile Hacıllı",
+hiz:3.0,
+met:5.5,
+link:"https://maps.google.com/?q=Hacıllı+Şile",
+ekipman:[
+"Su",
+"İlk Yardım",
+"Yedek Çorap",
+"Powerbank"
+]
+},
+
+uludag:{
+ad:"Uludağ Çobankaya",
+hiz:3.5,
+met:4.5,
+link:"https://maps.google.com/?q=Uludağ+Çobankaya",
+ekipman:[
+"Mont",
+"Su",
+"Powerbank"
+]
+},
+
+menekse:{
+ad:"Menekşe Yaylası",
+hiz:3.4,
+met:5.5,
+link:"https://maps.google.com/?q=Menekşe+Yaylası",
+ekipman:[
+"Su",
+"İlk Yardım",
+"Yağmurluk"
+]
+},
+
+ballikayalar:{
+ad:"Ballıkayalar",
+hiz:3.2,
+met:5.2,
+link:"https://maps.google.com/?q=Ballıkayalar",
+ekipman:[
+"Su",
+"Trekking Batonları",
+"İlk Yardım"
+]
+},
+
+kartepe:{
+ad:"Kartepe Kuzuyayla",
+hiz:3.5,
+met:4.8,
+link:"https://maps.google.com/?q=Kuzuyayla+Kartepe",
+ekipman:[
+"Mont",
+"Su",
+"Powerbank"
+]
+},
+
+kazdaglari:{
+ad:"Kazdağları",
+hiz:3.3,
+met:5.3,
+link:"https://maps.google.com/?q=Kazdağları",
+ekipman:[
+"Su",
+"Şapka",
+"İlk Yardım",
+"Powerbank"
+]
+},
+
+yenice:{
+ad:"Yenice Ormanları",
+hiz:3.9,
+met:4.6,
+link:"https://maps.google.com/?q=Yenice+Ormanları",
+ekipman:[
+"Su",
+"Yağmurluk",
+"Powerbank"
+]
+},
+
+igneada:{
+ad:"İğneada Longozu",
+hiz:4.0,
+met:4.2,
+link:"https://maps.google.com/?q=İğneada+Longozu",
+ekipman:[
+"Su",
+"Sinek Kovucu",
+"Şapka"
+]
+}
+
+};
+
+function hesapla(){
+
+const rota=
+rotalar[
+document.getElementById("rota").value
+];
+
+const mesafe=
+parseFloat(
+document.getElementById("mesafe").value
+);
+
+const kilo=
+parseFloat(
+document.getElementById("kilo").value
+);
+
+const baslangic=
+document.getElementById("baslangic").value;
+
+if(!mesafe||!kilo){
+alert("Bilgileri doldurun");
+return;
+}
+
+const saat=
+mesafe/rota.hiz;
+
+const dakika=
+Math.round(saat*60);
+
+const mola=
+Math.floor(dakika/45)*10;
+
+const toplam=
+dakika+mola;
+
+const kalori=
+Math.round(
+(rota.met*3.5*kilo/200)
+*dakika
+);
+
+const su=
+(Math.max(1,toplam/60*0.75))
+.toFixed(1);
+
+const t=
+baslangic.split(":");
+
+const start=
+(parseInt(t[0])*60)+
+parseInt(t[1]);
+
+const finish=
+start+toplam;
+
+const fh=
+Math.floor((finish%1440)/60);
+const fm=
+finish%60;
+
+document.getElementById("sonuc")
+.innerHTML=`
+
+<b>📍 ${rota.ad}</b><br>
+
+🔥 Kalori:
+${kalori} kcal<br>
+
+💧 Su:
+${su} litre<br>
+
+☕ Mola:
+${mola} dk<br>
+
+🥾 Aktivite:
+${Math.floor(toplam/60)} sa
+${toplam%60} dk<br>
+
+🕒 Tahmini Bitiş:
+${String(fh).padStart(2,"0")}:
+${String(fm).padStart(2,"0")}<br><br>
+
+🎒 Ekipman:<br>
+${rota.ekipman.map(x=>"✅ "+x).join("<br>")}
+
+`;
+
+document.getElementById("sonuc")
+.style.display="block";
+
+localStorage.setItem(
+"sonMesafe",
+mesafe
+);
+
+localStorage.setItem(
+"sonKilo",
+kilo
+);
+
+}
+
+function haritaAc(){
+
+const rota=
+rotalar[
+document.getElementById("rota").value
+];
+
+window.open(
+rota.link,
+"_blank"
+);
+
+}
+
+function favoriKaydet(){
+
+localStorage.setItem(
+"favoriRota",
+document.getElementById("rota").value
+);
+
+alert("Favori rota kaydedildi");
+}
+
+window.onload=function(){
+
+const kilo=
+localStorage.getItem("sonKilo");
+
+const mesafe=
+localStorage.getItem("sonMesafe");
+
+const favori=
+localStorage.getItem("favoriRota");
+
+if(kilo)
+document.getElementById("kilo").value=kilo;
+
+if(mesafe)
+document.getElementById("mesafe").value=mesafe;
+
+if(favori)
+document.getElementById("rota").value=favori;
+
+};
+
+</script>
+
+</body>
+</html>
